@@ -7,7 +7,7 @@ import Control.Coroutine as CR
 import Control.Coroutine.Aff (emit)
 import Control.Coroutine.Aff as CRA
 import Control.Monad.Except (runExcept)
-import Data.Argonaut (decodeJson, encodeJson, fromString, stringify, toArray)
+import Data.Argonaut (decodeJson, encodeJson, fromString, stringify, toArray, jsonParser)
 import Data.Array ((:))
 import Data.Either (Either, either, isRight, isLeft, fromLeft)
 import Data.Foldable (for_, foldr)
@@ -79,13 +79,16 @@ cellToHTML cell@(Cell c) = HH.td_
 eval :: Query ~> H.ComponentDSL State Query Message Aff
 eval (Update (Tuple r c) msg next) = do
   H.modify_ \state -> state { selectedCell = msg }
-  H.modify_ \state -> state { spreadSheet = updateCellContent r c msg state.spreadSheet }
+  when (msg /= "") $
+    H.modify_ \state -> state { spreadSheet = updateCellContent r c msg state.spreadSheet }
   pure next
 eval (UpdateFocus (Tuple r c) next) = do
   s <- H.get
   let msg = getCell r c s.spreadSheet >>= \(Cell cell) -> cell.content
   H.modify_ \state -> state { selectedCell = maybe "" id msg
-                            , toEval = S.insert (Tuple r c) state.toEval }
+                            , toEval = S.insert (Tuple r c) state.toEval
+                            , spreadSheet = clearEvalCell r c state.spreadSheet
+                            }
   pure next
 eval (Eval next) = do
   s <- H.get
@@ -95,8 +98,8 @@ eval (Eval next) = do
   H.modify_ \state -> state { toEval = (S.empty :: Set (Tuple Row Col)) }
   pure next
 eval (UpdateResult cells next) = do
+  H.modify_ \state -> state { spreadSheet = updateCells state.spreadSheet cells }
   pure next
-
 
 -- A consumer coroutine that takes output messages from our component
 -- IO and sends them using the websocket
@@ -131,7 +134,7 @@ wsProducer socket = CRA.produce \emitter -> do
 wsConsumer :: (Query ~> Aff) -> CR.Consumer String Aff Unit
 wsConsumer query = CR.consumer \msg -> do
   _ <- H.liftEffect $ log $ "RECEIVED: " <> msg
-  let json = decodeJson (fromString msg) >>= traverse decodeJson -- TODO not working...
+  let json = jsonParser msg >>= \ss -> decodeJson ss
   either
     (H.liftEffect <<< log)
     (query <<< H.action <<< UpdateResult)
