@@ -8,7 +8,7 @@ import Control.Coroutine.Aff (emit)
 import Control.Coroutine.Aff as CRA
 import Control.Monad.Except (runExcept)
 import Data.Argonaut (decodeJson, encodeJson, fromString, stringify, toArray, jsonParser)
-import Data.Array ((:))
+import Data.Array ((:), filter)
 import Data.Either (Either, either, isRight, isLeft, fromLeft)
 import Data.Foldable (for_, foldr)
 import Data.Maybe (Maybe(..), maybe, fromMaybe)
@@ -31,19 +31,18 @@ import Web.Socket.WebSocket as WS
 
 data Query a = Update (Tuple Row Col) String a
              | UpdateFocus (Tuple Row Col) a
-             | Eval a
-             | UpdateResult (Array Cell) a
+             | Eval (Tuple Row Col) a
+             | UpdateResult Cell a
 
 type State = { spreadSheet  :: SpreadSheet Cell
              , selectedCell :: String
-             , toEval       :: Set (Tuple Row Col)
-             , errors       :: Array String }
+             , errors       :: Set (Tuple Row Col) }
 
 data Message = OutputMessage String
 
 component :: H.Component HH.HTML Query Unit Message Aff
 component = H.component
-            { initialState: const (initialState 20 10)
+            { initialState: const (initialState 20 20)
             , render
             , eval
             , receiver: const Nothing }
@@ -51,17 +50,22 @@ component = H.component
 initialState :: Int -> Int -> State
 initialState r c =
   { spreadSheet: createSpreadSheet emptyCell r c
-  , errors: []
-  , toEval: S.empty
+  , errors: S.empty
   , selectedCell: "" }
 
 render :: State -> H.ComponentHTML Query
 render state = HH.dd_
                [ HH.h1_
-                 [ HH.text $ "f(x): " <> state.selectedCell
-                 , HH.table_ $ HH.tr_ <$> (spreadSheetToHTML state.spreadSheet)
+                 [ HH.div_ [ HH.text $ "f(x): " <> state.selectedCell ]
+                 , HH.div_ [ HH.ul_ (map renderError
+                                     $ showErrors state.spreadSheet state.errors)]
+                 , HH.div_ [ HH.style_ [] -- TODO
+                           , HH.table_ $ HH.tr_ <$> (spreadSheetToHTML state.spreadSheet)]
                  ]
                ]
+
+renderError :: forall a b. String -> HH.HTML a b
+renderError error = HH.li_ [ HH.text error ]
 
 spreadSheetToHTML :: forall a. SpreadSheet Cell-> Array (Array (HH.HTML a (Query Unit)))
 spreadSheetToHTML = map (map cellToHTML) <<< toRowsArray
@@ -72,33 +76,33 @@ cellToHTML cell@(Cell c) = HH.td_
                              , HP.value $ show cell
                              , HE.onValueInput $ HE.input  $ Update (Tuple c.row c.col)
                              , HE.onFocusIn    $ HE.input_ $ UpdateFocus (Tuple c.row c.col)
-                             , HE.onFocusOut   $ HE.input_ $ Eval
+                             , HE.onFocusOut   $ HE.input_ $ Eval (Tuple c.row c.col)
                              ]
                   ]
 
 eval :: Query ~> H.ComponentDSL State Query Message Aff
-eval (Update (Tuple r c) msg next) = do
+eval (Update (Tuple r c) msg next) = do -- updates a cell content on the user's input
   H.modify_ \state -> state { selectedCell = msg }
-  when (msg /= "") $
-    H.modify_ \state -> state { spreadSheet = updateCellContent r c msg state.spreadSheet }
+  H.modify_ \state -> state { spreadSheet = updateCellContent r c msg state.spreadSheet }
   pure next
-eval (UpdateFocus (Tuple r c) next) = do
+eval (UpdateFocus (Tuple r c) next) = do -- updates a cell content on the user's focus in
   s <- H.get
   let msg = getCell r c s.spreadSheet >>= \(Cell cell) -> cell.content
   H.modify_ \state -> state { selectedCell = maybe "" id msg
-                            , toEval = S.insert (Tuple r c) state.toEval
-                            , spreadSheet = clearEvalCell r c state.spreadSheet
-                            }
+                            , spreadSheet = clearEvalCell r c state.spreadSheet }
   pure next
-eval (Eval next) = do
+eval (Eval (Tuple r c) next) = do
   s <- H.get
-  let cells = getCells s.toEval s.spreadSheet
-  let json  = stringify $ encodeJson cells
-  H.raise $ OutputMessage json
-  H.modify_ \state -> state { toEval = (S.empty :: Set (Tuple Row Col)) }
+  let cell = getCell r c s.spreadSheet
+      json = maybe "" (stringify <<< encodeJson) cell
+  when (json /= "") $ H.raise $ OutputMessage json
   pure next
-eval (UpdateResult cells next) = do
-  H.modify_ \state -> state { spreadSheet = updateCells state.spreadSheet cells }
+eval (UpdateResult cell@(Cell c) next) = do -- updates the cell content after eval
+  H.modify_ \state -> state { spreadSheet = updateCell cell state.spreadSheet }
+  when (isLeft c.evalResult) $
+    H.modify_ \state -> state { errors = S.insert (Tuple c.row c.col) state.errors }
+  when (isRight c.evalResult) $
+    H.modify_ \state -> state { errors = S.delete (Tuple c.row c.col) state.errors }
   pure next
 
 -- A consumer coroutine that takes output messages from our component

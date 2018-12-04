@@ -1,13 +1,13 @@
 module Cell where
 
-import Data.Validation.Semigroup
 import Prelude
 
+import Control.Alt ((<|>))
 import Data.Argonaut (class DecodeJson, class EncodeJson, Json, decodeJson, encodeJson, getFieldOptional, jsonEmptyArray, jsonEmptyObject, (.?), (:=), (~>))
-import Data.Array ((..), fromFoldable, groupBy)
+import Data.Array ((..), (:), fromFoldable, groupBy, catMaybes)
 import Data.Array.NonEmpty (toArray)
 import Data.Either (Either(..), either)
-import Data.Foldable (foldr)
+import Data.Foldable (class Foldable, foldr)
 import Data.Map (Map, empty, insert, lookup, values, filterKeys)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Set (Set, member)
@@ -31,6 +31,17 @@ instance showCell :: Show Cell where
   show (Cell { evalResult: r, content: (Just c) }) = either (const c) showRight r
     where showRight "" = c
           showRight x  = x
+
+showError :: Cell -> String
+showError (Cell { col: c, row: r, evalResult: (Left res) }) = f res
+  where f x = "[" <> (show c) <> "," <> (show r) <> "]: " <> x
+showError _ = ""
+
+-- showErrors :: forall a. Foldable a => a (Tuple Row Col) -> SpreadSheet a -> String
+showErrors :: forall a b. Ord a => Foldable b => Map a Cell -> b a -> Array String
+showErrors table = map showError <<< catMaybes <<< foldr f []
+  where f x acc = lookup x table : acc
+
 -- Lib functions
 createSpreadSheet :: forall a. (Tuple Row Col -> a) -> Row -> Col -> SpreadSheet a
 createSpreadSheet e rows columns = foldr f empty keys
@@ -62,12 +73,6 @@ getCells :: forall a. Set (Tuple Row Col) -> SpreadSheet a -> Array a
 getCells keys = fromFoldable <<< filterKeys f
   where f k = member k keys
 
-getCellContent :: Cell -> Maybe String
-getCellContent (Cell c) = c.content
-
-id :: forall a. a -> a
-id x = x
-
 updateCell :: Cell -> SpreadSheet Cell -> SpreadSheet Cell
 updateCell (Cell c) = updateCellVal c.row c.col (Cell c)
 
@@ -81,6 +86,9 @@ clearEvalCell :: Row -> Col -> SpreadSheet Cell -> SpreadSheet Cell
 clearEvalCell r c table = maybe table f $ getCell r c table
   where f cell = updateCellVal r c (clearEval cell) table
 
+id :: forall a. a -> a
+id x = x
+
 -- JSON data types and instances
 instance decodeJsonCell :: DecodeJson Cell where
   decodeJson json = do
@@ -90,7 +98,8 @@ instance decodeJsonCell :: DecodeJson Cell where
     content <- obj .? "content"
     evalCon <- obj .? "evalResult"
     evalObj <- decodeJson evalCon
-    let evalResult = evalObj .? "Right" >>= \x -> Right x -- TODO Left
+    evalResult <- (Left  <$> evalObj .? "Left") <|>
+                  (Right <$> evalObj .? "Right")
     pure $ Cell { row, col, content, evalResult }
 
 instance encodeJsonCell :: EncodeJson Cell where
