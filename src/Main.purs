@@ -1,12 +1,11 @@
 module Main where
 
 import Prelude
-import SpreadSheet
 
+import Component.Communication (wsConsumer, wsProducer, wsSender)
+import Component.SpreadSheet (component)
 import Control.Coroutine as CR
-import Data.Maybe (Maybe(..))
 import Effect (Effect)
-import Halogen as H
 import Halogen.Aff as HA
 import Halogen.VDom.Driver (runUI)
 import Web.Socket.WebSocket as WS
