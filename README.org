@@ -1,4 +1,5 @@
 * HaskCell front-end
+  This project was developed using the ~[[https://github.com/slamdata/purescript-halogen-template][purescript-halogen-template]]~.
 ** Prerequisites
    This guide assumes you already have Git and Node.js installed with npm
    somewhere on your path.
@@ -41,8 +42,8 @@ $ npm run watch
 *** Fast watching with ~purs ide~
 
     If you're using an editor that supports ~purs ide~ or running
-    [[https://github.com/kRITZCREEK/pscid][~pscid~]] there's an option for getting near-instant builds of the app
-    while you work on it:
+    ~[[https://github.com/kRITZCREEK/pscid][pscid]]~ there's an option for getting near-instant builds of the
+    app while you work on it:
 
     #+BEGIN_SRC shell
 $ npm run watch-fast
