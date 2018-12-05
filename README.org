@@ -1,0 +1,61 @@
+* HaskCell front-end
+** Prerequisites
+   This guide assumes you already have Git and Node.js installed with npm
+   somewhere on your path.
+
+   In the PureScript ecosystem Bower is currently the most commonly used
+   package manager and we'll be relying on it for this project, so if you
+   don't already have it, you can install it like this:
+
+   #+BEGIN_SRC shell
+$ npm install --global bower
+   #+END_SRC
+
+** Building
+   The project can now be built with:
+   #+BEGIN_SRC shell
+$ npm run build
+   #+END_SRC
+
+   This will build the PureScript source code and produce a bundled JS
+   file as dist/app.js.
+
+   This is an alias for the Pulp command:
+
+   #+BEGIN_SRC shell
+$ pulp build --to dist/app.js
+   #+END_SRC
+
+   If you open ~dist/index.html~ you should now have a basic working
+   Halogen app.
+
+   You can also use the command:
+
+   #+BEGIN_SRC shell
+$ npm run watch
+   #+END_SRC
+
+   To start a process that will watch the source files and trigger a
+   reload whenever they are modified. Alternatively...
+
+*** Fast watching with ~purs ide~
+
+    If you're using an editor that supports ~purs ide~ or running
+    [[https://github.com/kRITZCREEK/pscid][~pscid~]] there's an option for getting near-instant builds of the app
+    while you work on it:
+
+    #+BEGIN_SRC shell
+$ npm run watch-fast
+    #+END_SRC
+
+    This will start a watch process that uses [[https://github.com/webpack/webpack][Webpack]] to rebundle the
+    app whenever the output files are changed. Since ~purs ide~
+    rebuilds modules on save, this means you can use this much faster
+    bundle-only rebuild script.
+
+    Note: ~purs ide~ only rebuilds one module at a time, so sometimes
+    the bundle will end up in an inconsistent state, resulting in
+    runtime errors. This occurs when a change is made in one module
+    that breaks other modules that depend on it. The solution is to
+    run a full build when a change like this is made, as the compiler
+    will force you to resolve those errors.

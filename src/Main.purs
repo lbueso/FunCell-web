@@ -15,7 +15,7 @@ main = do
   connection <- WS.create "ws://127.0.0.1:9160" []
   HA.runHalogenAff do
     body <- HA.awaitBody
-    io <- runUI component unit body
+    io   <- runUI component unit body
 
     -- The wsSender consumer subscribes to all output messages from
     -- our component
