@@ -1,6 +1,6 @@
 {
   "private": true,
-  "name": "purescript-halogen-template",
+  "name": "FunCell-web",
   "ignore": [
     "**/.*",
     "node_modules",

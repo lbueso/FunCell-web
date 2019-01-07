@@ -1,4 +1,4 @@
-* HaskCell front-end
+* FunCell: Functional SpreadSheet web
   This project was developed using the [[https://github.com/slamdata/purescript-halogen-template][purescript-halogen-template]].
 ** Prerequisites
    This guide assumes you already have Git and Node.js installed with npm
