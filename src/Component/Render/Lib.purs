@@ -48,19 +48,21 @@ renderCell cell@(Cell c) = HH.td_
 render :: State -> H.ComponentHTML Query
 render state = HH.dd_
                [ HH.h1_
-                 [ HH.div_ [ HH.text $ "fx: " <> state.selectedCell ]
-                 , HH.div_ [ HH.ul_ (map renderError
-                                     $ showErrors state.spreadSheet state.errors)]
+                 [ HH.div
+                   [ HP.class_ (HH.ClassName "formula-wrapper") ]
+                   [ HH.text $ "fx: " <> state.selectedCell ]
                  , HH.div
                    [ HP.class_ (HH.ClassName "table-wrapper")]
                    [ HH.table_ [ HH.thead_ $ maybe [] singleton (head spreadSheetHTML),
                                  HH.tbody_ $ maybe [] id (tail spreadSheetHTML) ] ]
+                 , HH.div
+                   [ HP.class_ (HH.ClassName "error-wrapper")]
+                   [ HH.ul_ (map renderError
+                             $ showErrors state.spreadSheet state.errors)]
                  ]
+
                ]
   where spreadSheetHTML = renderSpreadSheet state.spreadSheet
-
-css :: forall r i. String -> HH.IProp ( class :: String | r ) i
-css = HP.class_ <<< HH.ClassName
 
 id :: forall a. a -> a
 id x = x

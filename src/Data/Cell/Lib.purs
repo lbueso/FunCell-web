@@ -5,8 +5,10 @@ import Prelude
 import Data.Array (fromFoldable, groupBy, (..), catMaybes, (:))
 import Data.Array.NonEmpty (toArray)
 import Data.Cell (Cell(..), Col, Row, SpreadSheet)
+import Data.Char (fromCharCode)
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable, foldr)
+import Data.String.CodeUnits (singleton)
 import Data.Map (Map, lookup, empty, filterKeys, insert, values)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Set (Set, member)
@@ -28,9 +30,6 @@ updateCellContent :: Row -> Col -> String -> SpreadSheet Cell -> SpreadSheet Cel
 updateCellContent r c s table = updateCellVal r c cell' table
   where (Cell cell) = maybe (emptyCell $ Tuple r c) id (getCell r c table)
         cell' = Cell $ cell { content = Just s }
-
--- toRowsList :: forall a. SpreadSheet (Cell a) -> List (NonEmptyList (Cell a))
--- toRowsList = groupBy (\x y -> x.row == y.row) <<< values
 
 toRowsArray :: SpreadSheet Cell -> Array (Array Cell)
 toRowsArray = map toArray <<< groupBy (\(Cell x) (Cell y) -> x.row == y.row) <<<
@@ -58,10 +57,12 @@ clearEvalCell r c table = maybe table f $ getCell r c table
 
 showError :: Cell -> String
 showError (Cell { col: c, row: r, evalResult: (Left res) }) = f res
-  where f x = "[" <> (show c) <> "," <> (show r) <> "]: " <> x
+  where f x = (toColumn c) <> (show r) <> ": " <> x
 showError _ = ""
 
--- showErrors :: forall a. Foldable a => a (Tuple Row Col) -> SpreadSheet a -> String
+toColumn :: Int -> String
+toColumn = maybe "" (singleton) <<< fromCharCode <<< (+) 65 -- TODO
+
 showErrors :: forall a b. Ord a => Foldable b => Map a Cell -> b a -> Array String
 showErrors table = map showError <<< catMaybes <<< foldr f []
   where f x acc = lookup x table : acc
