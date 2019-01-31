@@ -22,7 +22,8 @@ renderSpreadSheet :: forall a. SpreadSheet Cell -> Array (HH.HTML a (Query Unit)
 renderSpreadSheet = map HH.tr_ <<< appendColumnHeaders <<< appendRowsHeaders
                     <<< map (map renderCell) <<< toRowsArray
   where appendColumnHeaders xs = [renderColumnHeaders $ length xs] <> xs
-        appendRowsHeaders   xs = zipWith (\x y -> append [x] y) (map renderRowHeader $ 0 .. (length xs)) xs
+        appendRowsHeaders   xs = zipWith (\x y -> append [x] y) (map renderRowHeader
+                                                                 $ 0 .. (length xs)) xs
 
 renderColumnHeaders :: forall a. Int -> Array (HH.HTML a (Query Unit))
 renderColumnHeaders rows = append [HH.th_ [] ] <<< map renderColumnHeader <<< catMaybes
@@ -47,7 +48,7 @@ renderCell cell@(Cell c) = HH.td_
 render :: State -> H.ComponentHTML Query
 render state = HH.dd_
                [ HH.h1_
-                 [ HH.div_ [ HH.text $ "f(x): " <> state.selectedCell ]
+                 [ HH.div_ [ HH.text $ "fx: " <> state.selectedCell ]
                  , HH.div_ [ HH.ul_ (map renderError
                                      $ showErrors state.spreadSheet state.errors)]
                  , HH.div
