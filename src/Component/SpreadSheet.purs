@@ -7,6 +7,7 @@ import Data.Argonaut (encodeJson, stringify)
 import Data.Cell (Cell(..))
 import Data.Cell.Lib (clearEvalCell, getCell, id, updateCell, updateCellContent)
 import Data.Either (isRight, isLeft)
+import Data.ExternalModule (ExternalModule(..))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Set as S
 import Data.Tuple (Tuple(..))
@@ -17,7 +18,7 @@ import Render.Lib (render)
 
 component :: H.Component HH.HTML Query Unit Message Aff
 component = H.component
-            { initialState: const (initialState 25 25)
+            { initialState: const (initialState 30 25)
             , render
             , eval
             , receiver: const Nothing }
@@ -45,4 +46,12 @@ eval (UpdateResult cell@(Cell c) next) = do -- updates the cell content after ev
     H.modify_ \state -> state { errors = S.insert (Tuple c.row c.col) state.errors }
   when (isRight c.evalResult) $
     H.modify_ \state -> state { errors = S.delete (Tuple c.row c.col) state.errors }
+  pure next
+eval (UpdateExternalModule text next) = do
+  H.modify_ \state -> state { externalModule = text }
+  pure next
+eval (SendExternalModule next) = do
+  s <- H.get
+  let json = stringify <<< encodeJson $ ExternalModule { text: s.externalModule}
+  H.raise $ OutputMessage json
   pure next

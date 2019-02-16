@@ -21,13 +21,14 @@ renderError error = HH.li_ [ HH.text error ]
 renderSpreadSheet :: forall a. SpreadSheet Cell -> Array (HH.HTML a (Query Unit))
 renderSpreadSheet = map HH.tr_ <<< appendColumnHeaders <<< appendRowsHeaders
                     <<< map (map renderCell) <<< toRowsArray
-  where appendColumnHeaders xs = [renderColumnHeaders $ length xs] <> xs
+  where appendColumnHeaders xs = [ renderColumnHeaders $ columns xs ] <> xs
         appendRowsHeaders   xs = zipWith (\x y -> append [x] y) (map renderRowHeader
                                                                  $ 0 .. (length xs)) xs
+        columns = maybe 0 (length) <<< head
 
 renderColumnHeaders :: forall a. Int -> Array (HH.HTML a (Query Unit))
-renderColumnHeaders rows = append [HH.th_ [] ] <<< map renderColumnHeader <<< catMaybes
-                           <<< map fromCharCode $ (65 .. (64 + rows)) -- TODO
+renderColumnHeaders cols = append [HH.th_ [] ] <<< map renderColumnHeader <<< catMaybes
+                           <<< map fromCharCode $ (65 .. (63 + cols)) -- TODO
 
 renderColumnHeader :: forall a. Char -> HH.HTML a (Query Unit)
 renderColumnHeader x = HH.th_ [ HH.text $ S.singleton x ]
@@ -46,21 +47,22 @@ renderCell cell@(Cell c) = HH.td_
                   ]
 
 render :: State -> H.ComponentHTML Query
-render state = HH.dd_
-               [ HH.h1_
-                 [ HH.div
-                   [ HP.class_ (HH.ClassName "formula-wrapper") ]
-                   [ HH.text $ "fx: " <> state.selectedCell ]
-                 , HH.div
-                   [ HP.class_ (HH.ClassName "table-wrapper")]
-                   [ HH.table_ [ HH.thead_ $ maybe [] singleton (head spreadSheetHTML),
-                                 HH.tbody_ $ maybe [] id (tail spreadSheetHTML) ] ]
-                 , HH.div
-                   [ HP.class_ (HH.ClassName "error-wrapper")]
-                   [ HH.ul_ (map renderError
-                             $ showErrors state.spreadSheet state.errors)]
-                 ]
-
+render state = HH.div [ HP.class_ (HH.ClassName "container") ]
+               [ HH.div
+                 [ HP.class_ (HH.ClassName "formula-wrapper") ]
+                 [ HH.text $ "fx: " <> state.selectedCell ]
+               , HH.div
+                 [ HP.class_ (HH.ClassName "table-wrapper")]
+                 [ HH.table_ [ HH.thead_ $ maybe [] singleton (head spreadSheetHTML),
+                               HH.tbody_ $ maybe [] id (tail spreadSheetHTML) ] ]
+               , HH.div
+                 [ HP.class_ (HH.ClassName "error-wrapper")]
+                 [ HH.ul_ (map renderError
+                           $ showErrors state.spreadSheet state.errors)]
+               , HH.div
+                 [ HP.class_ (HH.ClassName "text-input-wrapper") ]
+                 [ HH.textarea [ HE.onValueInput $ HE.input  $ UpdateExternalModule
+                               , HE.onFocusOut   $ HE.input_ $ SendExternalModule ] ]
                ]
   where spreadSheetHTML = renderSpreadSheet state.spreadSheet
 
