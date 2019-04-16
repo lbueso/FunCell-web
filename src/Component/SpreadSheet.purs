@@ -5,8 +5,8 @@ import Prelude
 import Component.Data (Message(..), Query(..), State, initialState)
 import Data.Argonaut (encodeJson, stringify)
 import Data.Cell (Cell(..))
-import Data.Cell.Lib (clearEvalCell, getCell, id, updateCell, updateCellContent)
-import Data.Either (isRight, isLeft)
+import Data.Cell.Lib (clearEvalCell, getCell, updateCell, updateCellContent, getContent, getEvalResult, id, showEval)
+import Data.Either (isRight, isLeft, Either(..))
 import Data.ExternalModule (ExternalModule(..))
 import Data.Maybe (Maybe(..), maybe)
 import Data.Set as S
@@ -18,20 +18,22 @@ import Render.Lib (render)
 
 component :: H.Component HH.HTML Query Unit Message Aff
 component = H.component
-            { initialState: const (initialState 30 25)
+            { initialState: const (initialState 35 25)
             , render
             , eval
             , receiver: const Nothing }
 
 eval :: Query ~> H.ComponentDSL State Query Message Aff
 eval (Update (Tuple r c) msg next) = do -- updates a cell content on the user's input
-  H.modify_ \state -> state { selectedCell = msg }
+  H.modify_ \state -> state { selectedCell = Tuple msg "" }
   H.modify_ \state -> state { spreadSheet = updateCellContent r c msg state.spreadSheet }
   pure next
 eval (UpdateFocus (Tuple r c) next) = do -- updates a cell content on the user's focus in
   s <- H.get
-  let msg = getCell r c s.spreadSheet >>= \(Cell cell) -> cell.content
-  H.modify_ \state -> state { selectedCell = maybe "" id msg
+  let cell = getCell r c s.spreadSheet
+      fx   = maybe mempty getContent cell
+      res  = maybe (Right "") (getEvalResult) cell
+  H.modify_ \state -> state { selectedCell = Tuple (maybe "" id fx) (showEval res)
                             , spreadSheet = clearEvalCell r c state.spreadSheet }
   pure next
 eval (Eval (Tuple r c) next) = do
@@ -52,6 +54,6 @@ eval (UpdateExternalModule text next) = do
   pure next
 eval (SendExternalModule next) = do
   s <- H.get
-  let json = stringify <<< encodeJson $ ExternalModule { text: s.externalModule}
+  let json = stringify <<< encodeJson $ ExternalModule { text: s.externalModule }
   H.raise $ OutputMessage json
   pure next

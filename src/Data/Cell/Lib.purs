@@ -4,14 +4,14 @@ import Prelude
 
 import Data.Array (fromFoldable, groupBy, (..), catMaybes, (:))
 import Data.Array.NonEmpty (toArray)
-import Data.Cell (Cell(..), Col, Row, SpreadSheet)
+import Data.Cell (Cell(..), Col, Row, SpreadSheet, Error, Result)
 import Data.Char (fromCharCode)
 import Data.Either (Either(..))
 import Data.Foldable (class Foldable, foldr)
-import Data.String.CodeUnits (singleton)
-import Data.Map (Map, lookup, empty, filterKeys, insert, values)
+import Data.Map (Map, empty, filterKeys, insert, lookup, values)
 import Data.Maybe (Maybe(..), maybe)
 import Data.Set (Set, member)
+import Data.String.CodeUnits (singleton)
 import Data.Tuple (Tuple(..))
 
 -- Lib functions
@@ -69,3 +69,14 @@ showErrors table = map showError <<< catMaybes <<< foldr f []
 
 id :: forall a. a -> a
 id x = x
+
+getContent :: Cell -> Maybe String
+getContent (Cell cell) = cell.content
+
+getEvalResult :: Cell -> Either Error Result
+getEvalResult (Cell cell) = cell.evalResult
+
+showEval :: Either Error Result -> String
+showEval (Right "")  = ""
+showEval (Right res) = "Result: " <> res
+showEval (Left  res) = "Error: "  <> res

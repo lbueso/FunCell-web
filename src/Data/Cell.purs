@@ -24,7 +24,7 @@ data Cell = Cell { row :: Row
 
 instance showCell :: Show Cell where
   show (Cell { content: Nothing }) = ""
-  show (Cell { evalResult: r, content: (Just c) }) = either (const c) showRight r
+  show (Cell { evalResult: r, content: (Just c) }) = either (const "ERROR") showRight r
     where showRight "" = c
           showRight x  = x
 

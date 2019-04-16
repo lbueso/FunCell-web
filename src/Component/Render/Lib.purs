@@ -5,11 +5,11 @@ import Prelude
 import Component.Data (Query(..), State)
 import Data.Array (catMaybes, head, length, singleton, tail, zipWith, (..))
 import Data.Cell (Cell(..), SpreadSheet)
-import Data.Cell.Lib (showErrors, toRowsArray)
+import Data.Cell.Lib (toRowsArray, id)
 import Data.Char (fromCharCode)
 import Data.Maybe (maybe)
 import Data.String.CodeUnits as S
-import Data.Tuple (Tuple(..))
+import Data.Tuple (Tuple(..), fst, snd)
 import Halogen as H
 import Halogen.HTML as HH
 import Halogen.HTML.Events as HE
@@ -50,21 +50,17 @@ render :: State -> H.ComponentHTML Query
 render state = HH.div [ HP.class_ (HH.ClassName "container") ]
                [ HH.div
                  [ HP.class_ (HH.ClassName "formula-wrapper") ]
-                 [ HH.text $ "fx: " <> state.selectedCell ]
+                 [ HH.text $ "fx : " <> fst state.selectedCell ]
                , HH.div
                  [ HP.class_ (HH.ClassName "table-wrapper")]
                  [ HH.table_ [ HH.thead_ $ maybe [] singleton (head spreadSheetHTML),
                                HH.tbody_ $ maybe [] id (tail spreadSheetHTML) ] ]
                , HH.div
                  [ HP.class_ (HH.ClassName "error-wrapper")]
-                 [ HH.ul_ (map renderError
-                           $ showErrors state.spreadSheet state.errors)]
+                 [ HH.text $ snd state.selectedCell ]
                , HH.div
                  [ HP.class_ (HH.ClassName "text-input-wrapper") ]
                  [ HH.textarea [ HE.onValueInput $ HE.input  $ UpdateExternalModule
                                , HE.onFocusOut   $ HE.input_ $ SendExternalModule ] ]
                ]
   where spreadSheetHTML = renderSpreadSheet state.spreadSheet
-
-id :: forall a. a -> a
-id x = x
