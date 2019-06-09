@@ -1,14 +1,15 @@
 module Component.Communication where
 
 import Prelude
-import Component.Data (Message(..), Query(..))
 
+import Component.Data (Message(..), Query(..))
 import Control.Coroutine as CR
 import Control.Coroutine.Aff (emit)
 import Control.Coroutine.Aff as CRA
 import Control.Monad.Except (runExcept)
 import Data.Argonaut (decodeJson, jsonParser)
 import Data.Either (either)
+import Data.ExternalModule (ExternalModule(..))
 import Data.Foldable (for_)
 import Data.Maybe (Maybe(..))
 import Effect.Aff (Aff)
@@ -17,9 +18,9 @@ import Effect.Console (log)
 import Foreign (F, Foreign, readString, unsafeToForeign)
 import Halogen as H
 import Web.Event.EventTarget as EET
+import Web.Socket.Event.EventTypes as WSET
 import Web.Socket.Event.MessageEvent as ME
 import Web.Socket.WebSocket as WS
-import Web.Socket.Event.EventTypes as WSET
 
 -- A consumer coroutine that takes output messages from our component
 -- IO and sends them using the websocket
@@ -58,5 +59,10 @@ wsConsumer query = CR.consumer \msg -> do
   either
     (H.liftEffect <<< log)
     (query <<< H.action <<< UpdateResult)
+    json
+  let json = jsonParser msg >>= \ss -> decodeJson ss
+  either
+    (H.liftEffect <<< log)
+    (query <<< H.action <<< UpdateExternalModule <<< (\(ExternalModule t) -> t.text))
     json
   pure Nothing

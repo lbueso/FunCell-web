@@ -9,6 +9,7 @@ import Data.Cell.Lib (clearEvalCell, getCell, getContent, getEvalResult, id, sho
 import Data.Either (Either(..))
 import Data.ExternalModule (ExternalModule(..))
 import Data.Maybe (Maybe(..), maybe)
+import Data.Messages (Load(..), Save(..))
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Halogen as H
@@ -47,17 +48,21 @@ eval (UpdateResult cell@(Cell c) next) = do -- updates the cell content after ev
 eval (UpdateExternalModule text next) = do
   H.modify_ \state -> state { externalModule = text }
   pure next
+eval (UpdateFilePath path next) = do
+  H.modify_ \state -> state { filePath = path }
+  pure next
 eval (SendExternalModule next) = do
   s <- H.get
   let json = stringify <<< encodeJson $ ExternalModule { text: s.externalModule }
   H.raise $ OutputMessage json
   pure next
-eval (UpdateFilePath path next) = do
-  H.modify_ \state -> state { filePath = path }
-  pure next
-eval (Save next) = do
+eval (SaveFile next) = do
   s <- H.get
+  let json = stringify <<< encodeJson $ Save s.filePath
+  H.raise $ OutputMessage json
   pure next
-eval (Load next) = do
+eval (LoadFile next) = do
   s <- H.get
+  let json = stringify <<< encodeJson $ Load s.filePath
+  H.raise $ OutputMessage json
   pure next

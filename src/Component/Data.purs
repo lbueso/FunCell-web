@@ -11,8 +11,8 @@ data Query a = Update (Tuple Row Col) String a
              | UpdateExternalModule String a
              | SendExternalModule a
              | UpdateFilePath String a
-             | Save a
-             | Load a
+             | SaveFile a
+             | LoadFile a
 
 data Message = OutputMessage String
 
@@ -25,5 +25,5 @@ initialState :: Int -> Int -> State
 initialState r c =
   { spreadSheet: createSpreadSheet emptyCell r c
   , selectedCell: Tuple "" ""
-  , externalModule: ""
+  , externalModule: "module ExternalModule where"
   , filePath: "" }

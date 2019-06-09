@@ -28,8 +28,6 @@ instance showCell :: Show Cell where
     where showRight "" = c
           showRight x  = x
 
-
-
 -- JSON data types and instances
 instance decodeJsonCell :: DecodeJson Cell where
   decodeJson json = do
