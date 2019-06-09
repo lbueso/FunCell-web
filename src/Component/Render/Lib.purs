@@ -62,5 +62,14 @@ render state = HH.div [ HP.class_ (HH.ClassName "container") ]
                  [ HP.class_ (HH.ClassName "text-input-wrapper") ]
                  [ HH.textarea [ HE.onValueInput $ HE.input  $ UpdateExternalModule
                                , HE.onFocusOut   $ HE.input_ $ SendExternalModule ] ]
-               ]
+               , HH.div
+                 [ HP.class_ (HH.ClassName "save-load-wrapper") ]
+                 [ HH.div
+                   [ HP.class_ (HH.ClassName "path-wrapper") ]
+                   [ HH.textarea [ HE.onValueInput $ HE.input  $ UpdateFilePath ] ]
+                 , HH.div
+                   [ HP.class_ (HH.ClassName "buttons-wrapper") ]
+                   [ HH.button [ HE.onClick (HE.input_ Save) ] [HH.text "save"]
+                   , HH.button [ HE.onClick (HE.input_ Load) ] [HH.text "load"]
+                   ] ] ]
   where spreadSheetHTML = renderSpreadSheet state.spreadSheet

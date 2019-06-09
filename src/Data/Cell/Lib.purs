@@ -45,6 +45,10 @@ getCells keys = fromFoldable <<< filterKeys f
 updateCell :: Cell -> SpreadSheet Cell -> SpreadSheet Cell
 updateCell (Cell c) = updateCellVal c.row c.col (Cell c)
 
+updateCellEvalResult :: Cell -> SpreadSheet Cell -> SpreadSheet Cell
+updateCellEvalResult (Cell c) ss = updateCell (Cell $ cell { evalResult = c.evalResult }) ss
+  where (Cell cell) = maybe (emptyCell $ Tuple c.row c.col) id $ getCell c.row c.col ss
+
 updateCells :: SpreadSheet Cell -> Array Cell -> SpreadSheet Cell
 updateCells = foldr updateCell
 

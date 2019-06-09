@@ -5,11 +5,10 @@ import Prelude
 import Component.Data (Message(..), Query(..), State, initialState)
 import Data.Argonaut (encodeJson, stringify)
 import Data.Cell (Cell(..))
-import Data.Cell.Lib (clearEvalCell, getCell, updateCell, updateCellContent, getContent, getEvalResult, id, showEval)
-import Data.Either (isRight, isLeft, Either(..))
+import Data.Cell.Lib (clearEvalCell, getCell, getContent, getEvalResult, id, showEval, updateCellContent, updateCell)
+import Data.Either (Either(..))
 import Data.ExternalModule (ExternalModule(..))
 import Data.Maybe (Maybe(..), maybe)
-import Data.Set as S
 import Data.Tuple (Tuple(..))
 import Effect.Aff (Aff)
 import Halogen as H
@@ -18,7 +17,7 @@ import Render.Lib (render)
 
 component :: H.Component HH.HTML Query Unit Message Aff
 component = H.component
-            { initialState: const (initialState 35 25)
+            { initialState: const (initialState 40 25)
             , render
             , eval
             , receiver: const Nothing }
@@ -44,10 +43,6 @@ eval (Eval (Tuple r c) next) = do
   pure next
 eval (UpdateResult cell@(Cell c) next) = do -- updates the cell content after eval
   H.modify_ \state -> state { spreadSheet = updateCell cell state.spreadSheet }
-  when (isLeft c.evalResult) $
-    H.modify_ \state -> state { errors = S.insert (Tuple c.row c.col) state.errors }
-  when (isRight c.evalResult) $
-    H.modify_ \state -> state { errors = S.delete (Tuple c.row c.col) state.errors }
   pure next
 eval (UpdateExternalModule text next) = do
   H.modify_ \state -> state { externalModule = text }
@@ -56,4 +51,13 @@ eval (SendExternalModule next) = do
   s <- H.get
   let json = stringify <<< encodeJson $ ExternalModule { text: s.externalModule }
   H.raise $ OutputMessage json
+  pure next
+eval (UpdateFilePath path next) = do
+  H.modify_ \state -> state { filePath = path }
+  pure next
+eval (Save next) = do
+  s <- H.get
+  pure next
+eval (Load next) = do
+  s <- H.get
   pure next
