@@ -1,9 +1,7 @@
 html,body {
     background-color: rgb(236,236,236);
     height: 99vh;
-    width: 99vw;
-    overflow-x: hidden;
-    overflow-y: hidden;
+    width: 98vw;
     justify-items: center;
 }
 
