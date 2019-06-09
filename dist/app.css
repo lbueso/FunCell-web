@@ -1,96 +1,97 @@
 html,body {
-    margin: 0px;
-    padding: 0;
+    background-color: rgb(236,236,236);
+    height: 99vh;
+    width: 95wh;
+    marigin: 0;
+    overflow-x: hidden;
+    overflow-y: hidden;
+    /* padding-left: 10px; */
+    /* padding-right: 10px; */
+    /* pading-bottom: 10px; */
     justify-items: center;
-    height: 95vh;
 }
 
-/* dd { */
-/*     width: 95%; */
-/*     height: 95%; */
-/* } */
-
-/* h1 { */
-/*     height: inherit; */
-/* } */
-
 body {
-    display: grid;
     font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, Helvetica, Arial, sans-serif, "Apple Color Emoji", "Segoe UI Emoji", "Segoe UI Symbol";
     font-size: 70%;
-    color: #333;
 }
 
 .container {
     display: grid;
-    max-height: 90%;
-    max-width: 98%;
-    grid-template-columns: 70% 30%;
-    grid-template-rows : 30px 84% 5% 1fr;
+    grid-gap: 2px;
+    max-height: 100%;
+    max-width: 100%;
+    grid-template-columns: repeat(3, 1fr);
+    grid-template-rows: 30px 1fr 30px;
 }
 
 .formula-wrapper {
-    grid-column-start: 1;
-    grid-column-end: 2;
-    grid-row-start: 1;
-    grid-row-end: 2;
+    grid-column: 1 / 3;
+    grid-row: 1;
     font-size: 25px;
-    background-color: #fff;
-}
-
-.table-wrapper {
-    grid-column-start: 1;
-    grid-column-end: 2;
-    grid-row-start: 2;
-    grid-row-end: 3;
-    display: grid;
-    overflow: scroll;
-    font-size: 90%;
-    background-color: #fff;
+    /* debug */
+    /* border: 2px solid rgb(233,171,88); */
+    /* border-radius: 5px; */
+    /* background-color: rgba(233,171,88,.5); */
 }
 
 .text-input-wrapper {
-    grid-column-start: 2;
-    grid-column-end: 3;
-    grid-row-start: 2;
-    grid-row-end: 3;
+    grid-column: 3 / 4;
+    grid-row: 2 / 4;
+    /* debug */
+    /* border: 2px solid rgb(233,171,88); */
+    /* border-radius: 5px; */
+    /* background-color: rgba(233,171,88,.5); */
+}
+
+.table-wrapper {
+    grid-column: 1 / 3;
+    grid-row: 2 / 4;
+    background-color: #fff;
+    overflow: scroll;
+    /* debug */
+    /* border: 2px solid rgb(233,171,88); */
+    /* border-radius: 5px; */
+    /* background-color: rgba(233,171,88,.5); */
 }
 
 .error-wrapper {
-    grid-column-start: 1;
-    grid-column-end: 2;
-    grid-row-start: 3;
-    grid-rowend: 4;
-    font-size: 20px;
+    grid-column: 1 / 3;
+    grid-row: 4;
+    /* debug */
+    /* border: 2px solid rgb(233,171,88); */
+    /* border-radius: 5px; */
+    /* background-color:  */rgba(233,171,88,.5);
 }
 
 .save-load-wrapper {
-    grid-column-start: 2;
-    grid-column-end: 3;
-    grid-row-start: 3;
-    grid-rowend: 4;
+    grid-column: 3;
+    grid-row: 4;
     display: grid;
-    grid-template-columns: 100%;
-    grid-template-rows: 50% 50%;
-    justify-content: left;
+    grid-gap: 5px;
+    grid-template-columns: 1fr;
+    grid-template-rows: repeat(2, 1fr);
 }
 
 .path-wrapper {
-    grid-column-start: 1;
-    grid-column-end: 2;
-    grid-row-start: 1;
-    grid-row-end: 2;
+    grid-column: 1;
+    grid-row: 1;
+    /* debug */
+    /* border: 2px solid rgb(233,171,88); */
+    /* border-radius: 5px; */
+    /* background-color: rgba(233,171,88,.5); */
 }
 
 .buttons-wrapper{
-    grid-columns-start: 1;
-    grid-columns-end: 2;
-    grid-row-start: 2;
-    grid-row-end: 3;
-    align-self: end;
-    justify-content: right;
+    grid-column: 1;
+    grid-row: 2;
+    /* debug */
+    /* border: 2px solid rgb(233,171,88); */
+    /* border-radius: 5px; */
+    /* background-color: rgba(233,171,88,.5); */
 }
 
+/* table stuff */
 table {
     position: relative;
     border: 1px solid #ddd;
@@ -127,6 +128,11 @@ input[type=text] {
     border: none;
 }
 
+*:focus {
+    outline: none;
+}
+
+/* textarea properties */
 textarea {
     width: 100%;
     height: 100%;
