@@ -67,7 +67,8 @@ render state = HH.div [ HP.class_ (HH.ClassName "container") ]
                  [ HP.class_ (HH.ClassName "save-load-wrapper") ]
                  [ HH.div
                    [ HP.class_ (HH.ClassName "path-wrapper") ]
-                   [ HH.textarea [ HE.onValueInput $ HE.input  $ UpdateFilePath ] ]
+                   [ HH.textarea [ HE.onValueInput $ HE.input  $ UpdateFilePath
+                                 , HP.placeholder $ "/Users/..."] ]
                  , HH.div
                    [ HP.class_ (HH.ClassName "buttons-wrapper") ]
                    [ HH.button [ HE.onClick (HE.input_ SaveFile) ] [HH.text "save"]
