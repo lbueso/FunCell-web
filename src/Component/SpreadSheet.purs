@@ -18,7 +18,7 @@ import Render.Lib (render)
 
 component :: H.Component HH.HTML Query Unit Message Aff
 component = H.component
-            { initialState: const (initialState 40 25)
+            { initialState: const (initialState 100 25)
             , render
             , eval
             , receiver: const Nothing }
