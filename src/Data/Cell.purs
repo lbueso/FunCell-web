@@ -3,7 +3,8 @@ module Data.Cell where
 import Prelude
 
 import Control.Alt ((<|>))
-import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson, jsonEmptyObject, (.?), (:=), (~>))
+import Data.Argonaut (class DecodeJson, class EncodeJson, decodeJson,
+                      jsonEmptyObject, (.?), (:=), (~>))
 import Data.Either (Either(..), either)
 import Data.Map (Map)
 import Data.Maybe (Maybe(..))
